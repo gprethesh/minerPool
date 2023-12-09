@@ -1,0 +1,25 @@
+{
+    "blockHeader": {
+        "version": "1.0.0",
+        "previousBlockHeader": "7af5c7cc90143c05f24f32d5dac0684a89177a686200a9871e1405fb9451e1ab",
+        "merkleRoot": "72309c95974de2884545e4849f819ffefd6b3898514aa9b22067c1cdcc19b657",
+        "time": 1700817600006,
+        "difficulty": "0x1",
+        "hash": "000bf50bf94d904a24a31156ebf289355f0ee3642329949eaa1f37395945d838"
+    },
+    "index": 1,
+    "transactions": [
+        {
+            "sender": "INODE",
+            "receiver": "MINER",
+            "amount": 100,
+            "signature": "undefined",
+            "fee": 0,
+            "time": 1700817600013,
+            "id": "bd30a5a9801008863c3000a6fb3b93be6bd3342d660541cfaf2b87b30a1e3993"
+        }
+    ],
+    "tx": [],
+    "nonce": 6059,
+    "target": "28269553036042773134002458501347953957600404723764219363537304254844764160"
+}
