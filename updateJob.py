@@ -1,22 +1,33 @@
 import redis
 import json
 import datetime
+import config
+import logging
 
 from database import r
 from activeMinig import mining_status
+from requestJob import request_job
 
 
 class MessageType:
     DOWNLOADFILE = "downloadFile"
+    REQUESTJOB = "requestJob"
 
 
 def update_jobs(new_wallet_address):
-    print("Update jobs called")
     try:
         current_time = datetime.datetime.now()
         ten_minutes_ago = current_time - datetime.timedelta(minutes=10)
 
         # Fetch the value of 'active_mining'
+        active_mining_status = r.get("mining_status")
+        print("active_mining_status", active_mining_status)
+        if active_mining_status in [None, False, "False"]:
+            print("Error: 'mining_status' not found in Redis.")
+            request_job(config.WALLET_ADDRESS, MessageType.REQUESTJOB)
+            logging.info("New Job was requested from the Inode")
+            return None, None
+
         active_mining_value = r.get("active_mining")
         if not active_mining_value:
             print("Error: 'active_mining' not found in Redis.")

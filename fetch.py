@@ -9,7 +9,7 @@ def fetch_balance(api_url):
         response = requests.get(api_url)
         response.raise_for_status()  # This will raise an exception for HTTP errors
         data = response.json()
-        print("Balance Found:", data)
+
         return int(data["bal"])  # Convert the balance to an integer
     except requests.exceptions.HTTPError as errh:
         print("Http Error:", errh)

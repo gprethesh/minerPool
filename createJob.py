@@ -8,7 +8,6 @@ from database import r
 
 def create_job(job_id, file_hashes):
     try:
-        print("Creating job")
         for file_hash, data in file_hashes.items():
             try:
                 # Serialize the data to a JSON string

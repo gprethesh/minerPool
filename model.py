@@ -3,6 +3,8 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import json
+from database import r
 
 
 class SimpleModel(nn.Module):
@@ -55,6 +57,82 @@ def get_pth_files(job, jobname):
         return []
 
 
+def update_model_record(model_name, new_percentage, validator_wallet):
+    try:
+        # Key for the 'models' hash
+        key = "models"
+
+        # Retrieve the existing record
+        existing_value = r.hget(key, model_name)
+        if existing_value is None:
+            return f"No record found for model {model_name}"
+
+        # Convert the JSON string back to a dictionary
+        data = json.loads(existing_value)
+
+        # Ensure 'validators' is a list, not an integer
+        if not isinstance(data.get("validators"), list):
+            data["validators"] = []
+
+        # Check if the validator_wallet is already present
+        if validator_wallet in data["validators"]:
+            return f"Validator {validator_wallet} already exists for model {model_name}"
+
+        # Update percentage and validators
+        data["percentage"] += new_percentage
+        data["validators"].append(validator_wallet)
+
+        # Convert the data back to a JSON string and save it
+        r.hset(key, model_name, json.dumps(data))
+
+        return f"Model {model_name} record updated successfully."
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+
+def check_model_record(model_name, validator_wallet):
+    try:
+        # Key for the 'models' hash
+        key = "models"
+
+        # Retrieve the existing record
+        existing_value = r.hget(key, model_name)
+        if existing_value is None:
+            return False
+
+        # Convert the JSON string back to a dictionary
+        data = json.loads(existing_value)
+
+        # Ensure 'validators' is a list, not an integer
+        if not isinstance(data.get("validators"), list):
+            return False
+
+        # Check if the validator_wallet is already present
+        return validator_wallet in data["validators"]
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+
+
+def create_model_record(model_name, percentage, validators):
+    try:
+        # Key for the 'models' hash
+        key = "models"
+
+        # Convert the data to a JSON string
+        value = json.dumps(
+            {"percentage": percentage, "last_active_time": 0, "validators": validators}
+        )
+
+        # Store the data in the 'models' hash under the model's name
+        r.hset(key, model_name, value)
+
+        return f"Model {model_name} record created successfully."
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+
 def model_exe(job, job_folder_path):
     try:
         pth_files = get_pth_files(job, job_folder_path)
@@ -92,6 +170,8 @@ def model_exe(job, job_folder_path):
         combined_model_save_path = os.path.join(final_folder, f"{job_folder_path}.pth")
         torch.save(combined_model.state_dict(), combined_model_save_path)
         print(f"Combined model saved to {combined_model_save_path}")
+        create_model_record(combined_model_save_path, 0, [])
+        return True, combined_model_save_path
     except Exception as e:
         print(f"Error saving combined model: {e}")
 

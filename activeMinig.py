@@ -7,7 +7,6 @@ from database import r
 
 
 def active_mining(value):
-    print("Active mining called")
     try:
         # Store the given value under the key 'active_mining'
         r.set("active_mining", value)
@@ -24,7 +23,6 @@ def active_mining(value):
 
 
 def mining_status(value):
-    print("mining_status called")
     try:
         # Store the given value under the key 'mining_status'
         r.set("mining_status", str(value))

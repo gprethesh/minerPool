@@ -5,7 +5,8 @@ import os
 
 from database import r
 from updateMiner import update_miner
-from model import load_model_from_pth
+from model import load_model_from_pth, model_exe
+from activeMinig import mining_status
 
 
 def delete_file_on_error(jobname, file_name):
@@ -25,53 +26,6 @@ def delete_file_on_error(jobname, file_name):
         return False, f"Error deleting file: {e}"
 
 
-# def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name):
-#     try:
-#         if not r.exists(jobname):
-#             return False, f"Job {jobname} not found in the database."
-
-#         job_data = r.hget(jobname, hash_value)
-#         if not job_data:
-#             return False, f"Hash {hash_value} not found in job {jobname}."
-
-#         try:
-#             data = json.loads(job_data)
-#         except json.JSONDecodeError:
-#             return (
-#                 False,
-#                 f"Error decoding JSON data for hash {hash_value} in job {jobname}.",
-#             )
-
-#         if data.get("gradient", 0) != 0:
-#             return (
-#                 False,
-#                 f"Gradient already exists for hash {hash_value} in job {jobname}.",
-#             )
-
-#         if data.get("downloaded", 0) == 0:
-#             return False, f"This job {hash_value} wasn't downloaded."
-
-#         data["gradient"] = new_gradient
-#         updated_data = json.dumps(data)
-#         r.hset(jobname, hash_value, updated_data)
-
-#         print("Came till here")
-#         try:
-#             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#             success, message = update_miner(wallet_address, "1", current_time)
-#             if not success:
-#                 return False, message
-#         except Exception as e:
-#             return False, f"Error updating miner: {e}"
-
-#         return True, "Gradient updated successfully."
-
-#     except redis.RedisError as e:
-#         return False, f"Redis error: {e}"
-#     except Exception as e:
-#         return False, f"An error occurred: {e}"
-
-
 def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name):
     try:
         if not r.exists(jobname):
@@ -83,7 +37,7 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
 
         try:
             data = json.loads(job_data)
-            print("json success")
+
         except json.JSONDecodeError:
             delete_file_on_error(jobname, file_name)  # Delete file on JSON decode error
             return (
@@ -92,7 +46,6 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
             )
 
         if data.get("gradient", 0) != 0:
-            print("gradient erorr so file got deleted")
             delete_file_on_error(
                 jobname, file_name
             )  # Delete file if gradient already exists
@@ -102,7 +55,6 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
             )
 
         if data.get("downloaded", 0) == 0:
-            print("file wasn't downloaed so it got deleted")
             delete_file_on_error(
                 jobname, file_name
             )  # Delete file if job was not downloaded
@@ -113,7 +65,7 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
             models = []
             model = load_model_from_pth(model_path)
             models.append(model)
-            print("Model loaded successfully", models)
+
         except FileNotFoundError:
             print(f"File not found: {model_path}")
             # Additional file not found handling logic here, if needed
@@ -167,7 +119,12 @@ def update_gradient(jobname, hash_value, new_gradient, wallet_address, file_name
         if gradient_missing:
             print("Gradient missing")
         else:
-            print("No gradient missing")
+            output = model_exe("Job", jobname)
+            if output:
+                print("Model execution successful")
+                mining_status(False)
+            else:
+                print("Model execution failed")
 
         return True, "Gradient updated successfully."
 

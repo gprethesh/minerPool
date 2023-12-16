@@ -8,7 +8,6 @@ from leveldatabase import store_in_leveldb, retrieve_from_leveldb
 def fetch_block(api_url):
     # Existing fetch_block function
     try:
-        print("Fetching block")
         response = requests.get(api_url)
         response.raise_for_status()  # Raises an exception for HTTP errors
         data = response.json()
@@ -26,7 +25,6 @@ def fetch_block(api_url):
 
 def fetch_block_height(api_url):
     try:
-        print("fetching block height")
         response = requests.get(api_url)
         response.raise_for_status()  # This will raise an exception for HTTP errors
         data = response.json()
@@ -99,7 +97,6 @@ def update_miner_balances(amount, blockheight):
 
 
 def process_transactions(api_url):
-    print(f"Processing transactions from {api_url}")
     try:
         block_height = fetch_block_height("http://127.0.0.1:5500/blockheight.json")
         print("block_height", block_height)
